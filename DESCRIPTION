@@ -1,0 +1,10 @@
+Package: SwitchPack
+Title: Tools To Facilitate Analysis Of Trials Affected By Crossover
+Version: 0.0.0.1
+Authors@R: person("Iain", "Bennett", email = "iain.t.bennett@gmail.com", role = c("aut", "cre"))
+Description: Extends survivial objects to include reporting of switch treatments. Includes functions to adjust for crossover via RPSFT.
+Depends: R (>= 3.4.3)
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1

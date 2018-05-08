@@ -22,20 +22,56 @@
 
 
 RPSFT <- function(rpsft.input,
-                  twopass = TRUE,
                   psimat = matrix(ncol = 1, data = seq(from=-3, to=3, by=0.1)),
-                  Grho   = 0){
+                  Grho   = 0,
+                  twopass = TRUE){
   if (twopass){
     rc <- RPSFT.2pass(rpsft.input = rpsft.input, pass1.psimat = psimat, Grho = Grho)
   } else{
     rc <- RPSFT.1pass(rpsft.input = rpsft.input, psimat = psimat, Grho = Grho)
   }
 
+  rc$input <- rpsft.input
+  rc$Grho <- Grho
+
+  attr(rc, "class") <- "RPSFT"
 
   return(rc)
 
 }
 
+
+#' print.RPSFT
+#'
+#' Prints a summary of an RPSFT object to screen.
+#' @param x An RPSFT object created with RPSFT()
+#' @keywords RPSFT, Survival
+#' @import dplyr
+#' @import survival
+#' @export
+#' @examples
+#'
+#' sim.df <- simStudy()
+#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
+#'    AdminCensTime = t.censor,
+#'    data = sim.df)
+#' y <- RPSFT(x)
+#' y
+
+print.RPSFT <- function(x){
+
+  cat("RPSFT analysis performed using rank test with rho =",x$Grho,"\n")
+  cat(length(x$psi.tried), " values for psi tested. ")
+  if(x$psi.unique){
+    cat("A unique solution of psi =", x$psi.chosen, " was found.")
+  } else{
+    cat("A unique solution for psi was not found. Possible solutions include: ", x$psi.found, ". Suggested value for further analysis is: ", x$psi.chosen)
+  }
+
+}
+
+# function for the two pass
 
 RPSFT.2pass <- function(rpsft.input, pass1.psimat = matrix(ncol = 1, data = c(seq(from=-3, to=3, by=0.1))), Grho = 0) {
 
@@ -67,6 +103,8 @@ RPSFT.2pass <- function(rpsft.input, pass1.psimat = matrix(ncol = 1, data = c(se
 
   return(rc)
 }
+
+# does actual RPSFT grid search
 
 RPSFT.1pass<-function(rpsft.input,
                 psimat      = matrix(ncol = 1,
@@ -111,7 +149,7 @@ RPSFT.1pass<-function(rpsft.input,
   return(rc)
 }
 
-
+# returns latent survival times for given psi and standard model
 # inputs are:
 #   psi - values of psi to try
 #   rpsft.input - dataframe/list containing:
@@ -142,7 +180,7 @@ RPSFT.latent <- function(psi, rpsft.input){
 #     trt.ind     = treatmemt indoicator (1 = randomized to experimental)
 #     cutofftime  = time of admin censor
 
-
+# tests for equality of latent survival times
 RPSFT.trypsi <- function(psi, Grho, rpsft.input){
 
   # define latent survival time given psi

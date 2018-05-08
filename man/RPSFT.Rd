@@ -4,17 +4,17 @@
 \alias{RPSFT}
 \title{A function to do RPSFT}
 \usage{
-RPSFT(rpsft.input, twopass = TRUE, psimat = matrix(ncol = 1, data = seq(from
-  = -3, to = 3, by = 0.1)), Grho = 0)
+RPSFT(rpsft.input, psimat = matrix(ncol = 1, data = seq(from = -3, to = 3, by
+  = 0.1)), Grho = 0, twopass = TRUE)
 }
 \arguments{
 \item{rpsft.input}{An object created using rpsft.input()}
 
-\item{twopass}{Defines if two searches are performed (wide then fine)}
-
 \item{psimat}{A matrix of values to try in grid search}
 
 \item{Grho}{Defines the test used in the grid search (0 = logrank, 1 = wilcoxon)}
+
+\item{twopass}{Defines if two searches are performed (wide then fine)}
 }
 \description{
 This function applies RPSFT method

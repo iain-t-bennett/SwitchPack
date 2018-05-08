@@ -2,8 +2,10 @@
 
 S3method(as.data.frame,rpsft.input)
 S3method(plot,rpsft.input)
+S3method(print,RPSFT)
 S3method(print,rpsft.input)
 export(RPSFT)
+export(cox.RPSFT)
 export(rpsft.input)
 export(simStudy)
 import(GGally)

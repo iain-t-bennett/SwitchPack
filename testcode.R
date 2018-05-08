@@ -18,6 +18,8 @@ y <- RPSFT(x)
 y <- RPSFT.latent(0.4, x)
 
 
+
+
 require(dplyr)
 require(Hmisc)
 require(GGally)

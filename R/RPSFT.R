@@ -1,7 +1,7 @@
 #' A function to do RPSFT
 #'
 #' This function applies RPSFT method
-#' @param rpsft.input An object created using rpsft.input()
+#' @param x An extended survival object created using SurvExt()
 #' @param psimat A matrix of values to try in grid search
 #' @param Grho Defines the test used in the grid search (0 = logrank, 1 = wilcoxon)
 #' @param twopass Defines if two searches are performed (wide then fine)
@@ -13,7 +13,7 @@
 #' @examples
 #'
 #' sim.df <- simStudy()
-#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#' x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
 #'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
 #'    AdminCensTime = t.censor,
 #'    data = sim.df)
@@ -21,17 +21,17 @@
 #' RPSFT(x)
 
 
-RPSFT <- function(rpsft.input,
+RPSFT <- function(x,
                   psimat = matrix(ncol = 1, data = seq(from=-3, to=3, by=0.1)),
                   Grho   = 0,
                   twopass = TRUE){
   if (twopass){
-    rc <- RPSFT.2pass(rpsft.input = rpsft.input, pass1.psimat = psimat, Grho = Grho)
+    rc <- RPSFT.2pass(rpsft.input = x, pass1.psimat = psimat, Grho = Grho)
   } else{
-    rc <- RPSFT.1pass(rpsft.input = rpsft.input, psimat = psimat, Grho = Grho)
+    rc <- RPSFT.1pass(rpsft.input = x, psimat = psimat, Grho = Grho)
   }
 
-  rc$input <- rpsft.input
+  rc$input <- x
   rc$Grho <- Grho
 
   attr(rc, "class") <- "RPSFT"
@@ -52,7 +52,7 @@ RPSFT <- function(rpsft.input,
 #' @examples
 #'
 #' sim.df <- simStudy()
-#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#' x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
 #'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
 #'    AdminCensTime = t.censor,
 #'    data = sim.df)

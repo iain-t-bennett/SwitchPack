@@ -7,13 +7,14 @@ require(SwitchPack)
 
 sim.df <- simStudy()
 
-x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
                  Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
                  AdminCensTime = t.censor,
                  data = sim.df)
 
 plot(x)
 y <- RPSFT(x)
+cox.RPSFT(y)
 
 y <- RPSFT.latent(0.4, x)
 

@@ -1,11 +1,12 @@
 
-#' rpsft.input
+#' SurvExt - Extended Survival Object
 #'
-#' Creates an rpsft.input object that combines surival and exposure information.
+#' Creates an SurvExt object that combines survival and exposure information. Can be used for RPSFT analysis.
 #' @param formula A formula for survival time on randomized treatment. Can only include single regression variable.
 #' @param data Required. A data frame in which to interpret the variables named in the formula and other arguments.
 #' @param Exposure Defines the exposure to study drug per patient.
-#' @param AdminCensTime Defined the administrative censoring time.
+#' @param AdminCensTime Defines the administrative censoring time.
+#' @param FirstSwitchTime Defines the first time of switch
 #' @keywords RPSFT, Survival
 #' @import dplyr
 #' @import survival
@@ -13,13 +14,14 @@
 #' @examples
 #'
 #' sim.df <- simStudy()
-#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#' x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
 #'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
 #'    AdminCensTime = t.censor,
 #'    data = sim.df)
 #' plot(x)
 #' RPSFT(x)
-rpsft.input <- function(formula, data , Exposure, AdminCensTime){
+SurvExt <- function(formula, data , Exposure, AdminCensTime, FirstSwitchTime){
+
   Call <- match.call()
 
   indx <- match(c("formula", "data"), names(Call), nomatch = 0)
@@ -45,7 +47,7 @@ rpsft.input <- function(formula, data , Exposure, AdminCensTime){
   sv <- with(data, Y)
 
   # process the additional variables
-  indx2 <- match(c("Exposure", "AdminCensTime", "data"), names(Call), nomatch = 0)
+  indx2 <- match(c("Exposure", "AdminCensTime", "data", "FirstSwitchTime"), names(Call), nomatch = 0)
 
   if (indx2[1] == 0) {
     stop("an Exposure argument is required")
@@ -60,22 +62,37 @@ rpsft.input <- function(formula, data , Exposure, AdminCensTime){
   t.off = sv[,1]-t.on
   trt.ind <- as.numeric(m[,2])
 
+  # process the optional variables
+  indx3 <- match(c("FirstSwitchTime"), names(Call), nomatch = 0)
+
+  # First switch time is provided
+  if (indx3[1] != 0) {
+    temp3 <- Call[indx3]
+    t.start = transmute_(data, temp3[[1]])[,1] %>%
+      as.numeric
+  } else{
+    t.start <- NA
+  }
+
+  #create object
+
   rc <- list(trt.ind = as.numeric(trt.ind),
              t.on = as.numeric(t.on),
              t.off = as.numeric(t.off),
              censor.ind = as.numeric(sv[,2]),
              cutofftime = as.numeric(t.cens),
+             t.start = t.start,
              orig.sv = sv)
 
-  attr(rc, "class") <- "rpsft.input"
+  attr(rc, "class") <- "SurvExt"
 
   return(rc)
 }
 
-#' as.data.frame.rpsft.input
+#' as.data.frame.SurvExt
 #'
-#' Converts an rpsft.input object to a data frame.
-#' @param x An rpsft.input object created with rpsft.input()
+#' Converts an SurvExt object to a data frame.
+#' @param x An SurvExt object created with SurvExt()
 #' @keywords RPSFT, Survival
 #' @import dplyr
 #' @import survival
@@ -83,25 +100,26 @@ rpsft.input <- function(formula, data , Exposure, AdminCensTime){
 #' @examples
 #'
 #' sim.df <- simStudy()
-#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#' x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
 #'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
 #'    AdminCensTime = t.censor,
 #'    data = sim.df)
 #' as.data.frame(x)
 
-as.data.frame.rpsft.input <- function(x){
+as.data.frame.SurvExt <- function(x){
   data_frame(trt.ind = x$trt.ind,
              t.on = x$t.on,
              t.off = x$t.off,
              censor.ind = x$censor.ind,
-             cutofftime = x$cutofftime
+             cutofftime = x$cutofftime,
+             t.start = x$t.start
   )
 }
 
-#' plot.rpsft.input
+#' plot.SurvExt
 #'
-#' Plots an rpsft.input object using GGally and some default settings.
-#' @param x An rpsft.input object created with rpsft.input()
+#' Plots a SurvExt object using GGally and some default settings.
+#' @param x An SurvExt object created with SurvExt()
 #' @keywords RPSFT, Survival
 #' @import dplyr
 #' @import survival
@@ -110,13 +128,13 @@ as.data.frame.rpsft.input <- function(x){
 #' @examples
 #'
 #' sim.df <- simStudy()
-#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#' x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
 #'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
 #'    AdminCensTime = t.censor,
 #'    data = sim.df)
 #' plot(x)
 
-plot.rpsft.input <- function(x){
+plot.SurvExt <- function(x){
   Treatment <- factor(x$trt.ind, levels = c(1,0), labels = c("Experimental", "Control Unadjusted"), ordered = TRUE)
 
   ggsurv(survfit(x$orig.sv ~ Treatment)) +
@@ -125,7 +143,7 @@ plot.rpsft.input <- function(x){
 }
 
 
-#' print.rpsft.input
+#' print.SurvExt
 #'
 #' Prints a summary of n rpsft.input object to screen.
 #' @param x An rpsft.input object created with rpsft.input()
@@ -136,13 +154,13 @@ plot.rpsft.input <- function(x){
 #' @examples
 #'
 #' sim.df <- simStudy()
-#' x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+#' x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
 #'    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
 #'    AdminCensTime = t.censor,
 #'    data = sim.df)
 #' x
 
-print.rpsft.input <- function(x){
+print.SurvExt <- function(x){
 
   rc <- mutate(as.data.frame(x), TreatmentInd = trt.ind) %>%
     group_by(TreatmentInd) %>%

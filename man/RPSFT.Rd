@@ -4,11 +4,11 @@
 \alias{RPSFT}
 \title{A function to do RPSFT}
 \usage{
-RPSFT(rpsft.input, psimat = matrix(ncol = 1, data = seq(from = -3, to = 3, by
-  = 0.1)), Grho = 0, twopass = TRUE)
+RPSFT(x, psimat = matrix(ncol = 1, data = seq(from = -3, to = 3, by = 0.1)),
+  Grho = 0, twopass = TRUE)
 }
 \arguments{
-\item{rpsft.input}{An object created using rpsft.input()}
+\item{x}{An extended survival object created using SurvExt()}
 
 \item{psimat}{A matrix of values to try in grid search}
 
@@ -22,7 +22,7 @@ This function applies RPSFT method
 \examples{
 
 sim.df <- simStudy()
-x <- rpsft.input(Surv(os.t, os.e) ~ I(x.trt==1),
+x <- SurvExt(Surv(os.t, os.e) ~ I(x.trt==1),
    Exposure = ifelse(x.trt == 1, os.t, ifelse(x.switch == 1, os.t - t.switch, 0)),
    AdminCensTime = t.censor,
    data = sim.df)

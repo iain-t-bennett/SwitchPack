@@ -135,11 +135,7 @@ as.data.frame.SurvExt <- function(x){
 #' plot(x)
 
 plot.SurvExt <- function(x){
-  Treatment <- factor(x$trt.ind, levels = c(1,0), labels = c("Experimental", "Control Unadjusted"), ordered = TRUE)
-
-  ggsurv(survfit(x$orig.sv ~ Treatment)) +
-    theme_bw() +
-    coord_cartesian(ylim = c(0,1))
+  SurvExt.KMPlot(x)
 }
 
 

@@ -26,19 +26,16 @@ cox.RPSFT <- function(x, use.latent.only = FALSE){
     mutate(event.time = t.on + t.off)
 
   # derive counterfactual times from latent event times and as T vs U
-  if (use.latent.only){
-    df <- mutate(df,
-                 lat.on  = pmin(t.on * exp(psi), latent.event.time),
-                 lat.off = ifelse((latent.event.time - lat.on) > 0, latent.event.time - lat.on, 0),
-                 cfact.time       = ifelse(trt.ind == 1, lat.on * exp(-psi) + lat.off,  latent.event.time ),
-                 cfact.censor.ind = latent.censor.ind
-    )
-  } else {
-    df <- mutate(df,
-                 cfact.time       = ifelse(trt.ind == 1, event.time,  latent.event.time ),
-                 cfact.censor.ind = ifelse(trt.ind == 1, censor.ind,  latent.censor.ind )
-    )
-  }
+  df <- mutate(df,
+              # need to convert CFExposure to latent event time scale for censoring purposes
+              lat.on  = pmin(CFExposure * exp(psi), latent.event.time),
+              lat.off = ifelse((latent.event.time - lat.on) > 0, latent.event.time - lat.on, 0),
+              # convert back to real time
+              cfact.time       = lat.on * exp(-psi) + lat.off,
+              cfact.censor.ind = latent.censor.ind
+              )
+
+  # select
 
   # derive corrected hazard ratios
   cox.rpsft <- coxph(Surv(cfact.time, cfact.censor.ind) ~ trt.ind, data = df)

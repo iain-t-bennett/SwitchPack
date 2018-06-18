@@ -51,6 +51,9 @@ SurvCF <- function(x, CFExposure, UseObserved = FALSE){
                # derive counter factual time on and off (checked against the latent time scale)
                cfact.on         = pmin(CFExposure * exp(psi), latent.event.time) * exp(-psi),
                cfact.off        = pmax(latent.event.time * exp(-psi) - cfact.on,0),
+               # if using observed
+               cfact.on         = ifelse(type == "Counterfactual", cfact.on,  t.on),
+               cfact.off         = ifelse(type == "Counterfactual", cfact.off,  t.off),
                # derive the counterfactuals/observed
                cfact.time       = ifelse(type == "Counterfactual", cfact.on + cfact.off,  event.time),
                cfact.censor.ind = ifelse(type == "Counterfactual", latent.censor.ind, censor.ind)

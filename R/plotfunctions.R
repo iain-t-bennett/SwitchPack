@@ -43,6 +43,7 @@ SurvExt.KMPlot <- function(x){
 #' SurvExt.KMPlot(x)
 
 SurvCF.KMPlot <- function(x){
+
   Treatment <- factor(x$trt.ind, levels = c(1,0), labels = c("Experimental", "Control Unadjusted"), ordered = TRUE)
 
   ggsurv(survfit(x$orig.sv ~ Treatment)) +
